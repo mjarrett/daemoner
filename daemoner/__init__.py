@@ -110,7 +110,7 @@ class Daemon(object):
         This stops a *separate* running daemon process
         """
         
-        log(self.pidfilename)
+
         if os.path.isfile(self.pidfilename):
 
             with open(self.pidfilename) as f:
