@@ -16,6 +16,9 @@ def log(*args,stderr=False):
         else:
             print(f"{datetime.datetime.now()} {text}",flush=True)
 
+def g():
+    pass
+            
 def main(**kwargs):
     
     
@@ -27,7 +30,7 @@ def main(**kwargs):
 
 
 class Daemon(object):
-    def __init__(self,f=main,fkwargs={},pidfilename='./daemon.pid',g=None,gkwargs={}):
+    def __init__(self,f=main,fkwargs={},pidfilename='./daemon.pid',g=g,gkwargs={}):
         
         self.pidfilename = pidfilename
         self.f = f
@@ -85,7 +88,6 @@ class Daemon(object):
 
         # If the PID files doesn't exist...
         else:
-            log("Starting daemon")
 
             # Setup signal handlers 
             signal.signal(signal.SIGINT, self.catch_signal)
