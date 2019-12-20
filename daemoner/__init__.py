@@ -6,15 +6,18 @@ import signal
 import time
 import json
 import urllib
-import datetime
+import datetime as dt
 import psutil
 
-def log(*args,stderr=False):
-    for text in args:
-        if stderr:
-            print(f"{datetime.datetime.now()} {text}",sys.stderr,flush=True)
-        else:
-            print(f"{datetime.datetime.now()} {text}",flush=True)
+def log(*args,file=None):
+    args = [dt.datetime.now()] + list(args)
+    if file == None:
+        print(*args,file=sys.stdout,flush=True)
+    else:
+        if type(file) != str:
+            raise TypeError("'file' argument must be a string")
+        with open(file,'a') as f:
+            print(*args,file=f,flush=True)
 
 def g():
     pass
@@ -32,7 +35,7 @@ def main(**kwargs):
 class Daemon(object):
     def __init__(self,f=main,fkwargs={},pidfilename='./daemon.pid',g=g,gkwargs={}):
         
-        self.pidfilename = pidfilename
+        self.pidfilename = os.path.abspath(pidfilename)
         self.f = f
         self.fkwargs = fkwargs
         self.g = g
@@ -95,10 +98,12 @@ class Daemon(object):
 
             # Get PID of current process
             pid = os.getpid()
-
+            now = dt.datetime.now().isoformat()
+            
             # Open the PID file and write the PID
-            with open(self.pidfilename,'w') as pidfile:
-                pidfile.write(f"{pid}")
+            with open(self.pidfilename,'w') as pidfile:                   
+                pidcontent = {'pid':pid,'time':now}
+                json.dump(pidcontent,pidfile)
 
             try:
                 self.f(**self.fkwargs)
@@ -116,7 +121,8 @@ class Daemon(object):
         if os.path.isfile(self.pidfilename):
 
             with open(self.pidfilename) as f:
-                pid = f.read().strip()
+                    data = json.load(f)
+                    pid = data['pid']
             os.kill(int(pid), signal.SIGTERM)
 
             # Check that the process has been killed
